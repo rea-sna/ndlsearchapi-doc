@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>国立国会図書館サーチ 外部提供インタフェース仕様書</title>
+  <style>
+    :root {
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --sidebar-text-active: #f8fafc;
+      --sidebar-accent: #3b82f6;
+      --sidebar-section: #475569;
+      --main-bg: #ffffff;
+      --main-text: #1e293b;
+      --main-secondary: #475569;
+      --border: #e2e8f0;
+      --code-bg: #f1f5f9;
+      --code-border: #cbd5e1;
+      --code-text: #0f172a;
+      --pre-bg: #0f172a;
+      --pre-text: #e2e8f0;
+      --pre-string: #86efac;
+      --pre-keyword: #93c5fd;
+      --pre-comment: #64748b;
+      --badge-get: #dcfce7;
+      --badge-get-text: #166534;
+      --badge-post: #dbeafe;
+      --badge-post-text: #1e40af;
+      --table-head-bg: #f8fafc;
+      --table-row-hover: #f8fafc;
+      --tag-bg: #eff6ff;
+      --tag-text: #1d4ed8;
+      --tag-border: #bfdbfe;
+      --note-bg: #fffbeb;
+      --note-border: #fbbf24;
+      --note-text: #92400e;
+      --info-bg: #eff6ff;
+      --info-border: #3b82f6;
+      --info-text: #1e40af;
+      --warn-bg: #fef2f2;
+      --warn-border: #ef4444;
+      --warn-text: #991b1b;
+      --sidebar-width: 280px;
+      --header-height: 56px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans JP', sans-serif;
+      background: var(--main-bg);
+      color: var(--main-text);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    /* ---- Top Header ---- */
+    .top-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--sidebar-bg);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 100;
+      border-bottom: 1px solid #1e293b;
+    }
+    .top-header .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .top-header .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--sidebar-accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .top-header .logo-icon svg { width: 18px; height: 18px; fill: white; }
+    .top-header .logo-text {
+      color: #f8fafc;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .top-header .logo-sub {
+      color: var(--sidebar-text);
+      font-size: 11px;
+      font-weight: 400;
+    }
+    .top-header .version-badge {
+      margin-left: auto;
+      background: #1e293b;
+      color: var(--sidebar-text);
+      border: 1px solid #334155;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+
+    /* ---- Sidebar ---- */
+    .sidebar {
+      position: fixed;
+      top: var(--header-height);
+      left: 0;
+      width: var(--sidebar-width);
+      height: calc(100vh - var(--header-height));
+      background: var(--sidebar-bg);
+      overflow-y: auto;
+      padding: 24px 0 40px;
+      border-right: 1px solid #1e293b;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
+
+    .nav-section-label {
+      padding: 16px 20px 6px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sidebar-section);
+    }
+    .nav-item {
+      display: block;
+      padding: 7px 20px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      font-size: 13.5px;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-item:hover {
+      color: var(--sidebar-text-active);
+      background: rgba(255,255,255,0.04);
+    }
+    .nav-item.active {
+      color: var(--sidebar-text-active);
+      border-left-color: var(--sidebar-accent);
+      background: rgba(59,130,246,0.08);
+    }
+    .nav-item.sub {
+      padding-left: 36px;
+      font-size: 13px;
+    }
+    .nav-divider {
+      height: 1px;
+      background: #1e293b;
+      margin: 12px 20px;
+    }
+
+    /* ---- Main Content ---- */
+    .main {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--header-height);
+      min-height: calc(100vh - var(--header-height));
+    }
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 48px 80px;
+    }
+
+    /* ---- Section ---- */
+    .doc-section {
+      margin-bottom: 64px;
+    }
+    .section-eyebrow {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--sidebar-accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--main-text);
+      line-height: 1.3;
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--main-text);
+      margin-top: 40px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--main-text);
+      margin-top: 28px;
+      margin-bottom: 10px;
+    }
+    h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--main-secondary);
+      margin-top: 20px;
+      margin-bottom: 8px;
+    }
+    p { margin-bottom: 14px; color: var(--main-text); }
+
+    /* ---- API Hero ---- */
+    .api-hero {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 12px;
+      padding: 32px 36px;
+      margin-bottom: 40px;
+      border: 1px solid #334155;
+    }
+    .api-hero h1 {
+      color: #f8fafc;
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .api-hero p {
+      color: #94a3b8;
+      margin-bottom: 0;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .api-hero .hero-meta {
+      display: flex;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .hero-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #64748b;
+      font-size: 12px;
+    }
+    .hero-meta-item span { color: #94a3b8; }
+
+    /* ---- Interface Cards ---- */
+    .interface-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .interface-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      text-decoration: none;
+      color: inherit;
+      transition: all 0.15s;
+      display: block;
+    }
+    .interface-card:hover {
+      border-color: var(--sidebar-accent);
+      box-shadow: 0 0 0 1px var(--sidebar-accent);
+    }
+    .interface-card .card-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      font-size: 16px;
+    }
+    .interface-card .card-title {
+      font-weight: 700;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    .interface-card .card-desc {
+      font-size: 12.5px;
+      color: var(--main-secondary);
+      line-height: 1.5;
+    }
+    .interface-card .card-badges {
+      display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;
+    }
+
+    /* ---- Badges ---- */
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .badge-url { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-xml { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-rss { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+    .badge-html { background: #fdf4ff; color: #7e22ce; border: 1px solid #e9d5ff; }
+    .badge-img { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-get { background: var(--badge-get); color: var(--badge-get-text); }
+    .badge-required { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-optional { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+
+    /* ---- URL Block ---- */
+    .url-block {
+      display: flex;
+      align-items: center;
+      background: var(--pre-bg);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      gap: 10px;
+      overflow-x: auto;
+    }
+    .url-block .method {
+      background: var(--sidebar-accent);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .url-block .url-text {
+      font-family: 'Fira Code', 'Courier New', monospace;
+      font-size: 13px;
+      color: #e2e8f0;
+      word-break: break-all;
+    }
+    .url-block .url-text .param { color: #fbbf24; }
+    .url-block .url-text .base { color: #86efac; }
+
+    /* ---- Code Block ---- */
+    pre.code-block {
+      background: var(--pre-bg);
+      border-radius: 8px;
+      padding: 20px;
+      overflow-x: auto;
+      margin: 12px 0;
+      border: 1px solid #1e293b;
+    }
+    pre.code-block code {
+      font-family: 'Fira Code', 'SF Mono', 'Courier New', monospace;
+      font-size: 13px;
+      color: var(--pre-text);
+      line-height: 1.6;
+    }
+    .code-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #1e293b;
+      border-radius: 8px 8px 0 0;
+      padding: 8px 16px;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: -1px;
+      border: 1px solid #1e293b;
+      border-bottom: none;
+    }
+    .code-label + pre.code-block {
+      border-radius: 0 0 8px 8px;
+    }
+    .code-label .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #3b82f6;
+    }
+    .hl-url { color: #86efac; }
+    .hl-param { color: #fbbf24; }
+    .hl-val { color: #f9a8d4; }
+    .hl-comment { color: #64748b; font-style: italic; }
+    .hl-xml-tag { color: #93c5fd; }
+    .hl-xml-attr { color: #fde68a; }
+    .hl-xml-val { color: #86efac; }
+
+    /* ---- Tables ---- */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 16px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    thead th {
+      background: var(--table-head-bg);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: var(--main-secondary);
+      letter-spacing: 0.03em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--table-row-hover); }
+    td code, th code {
+      font-family: 'Fira Code', 'SF Mono', monospace;
+      font-size: 12px;
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: #0f172a;
+    }
+    .td-req { color: #dc2626; font-size: 12px; font-weight: 600; }
+    .td-opt { color: #64748b; font-size: 12px; }
+    td.center { text-align: center; }
+
+    /* ---- Callout ---- */
+    .callout {
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 16px 0;
+      display: flex;
+      gap: 12px;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .callout.note { background: var(--note-bg); border-left: 4px solid var(--note-border); color: var(--note-text); }
+    .callout.info { background: var(--info-bg); border-left: 4px solid var(--info-border); color: var(--info-text); }
+    .callout.warn { background: var(--warn-bg); border-left: 4px solid var(--warn-border); color: var(--warn-text); }
+
+    /* ---- Inline code ---- */
+    p code, li code, td code {
+      font-family: 'Fira Code', 'SF Mono', monospace;
+      font-size: 12.5px;
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      color: #0f172a;
+    }
+
+    ul, ol { padding-left: 24px; margin-bottom: 14px; }
+    li { margin-bottom: 4px; font-size: 14px; }
+    li::marker { color: var(--sidebar-accent); }
+
+    /* ---- Section anchor ---- */
+    .section-header {
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+
+    /* ---- Changelog ---- */
+    .changelog-item {
+      display: flex;
+      gap: 20px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .changelog-item:last-child { border-bottom: none; }
+    .changelog-version {
+      flex-shrink: 0;
+      width: 80px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--main-text);
+    }
+    .changelog-date {
+      font-size: 12px;
+      color: var(--main-secondary);
+      margin-bottom: 4px;
+    }
+    .changelog-changes { font-size: 13.5px; }
+    .changelog-changes ul { margin-bottom: 0; }
+
+    /* ---- Quick Reference ---- */
+    .quick-ref {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .quick-ref-item {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .quick-ref-item .qr-label {
+      font-size: 11px;
+      color: var(--main-secondary);
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .quick-ref-item .qr-value {
+      font-family: 'Fira Code', monospace;
+      font-size: 12.5px;
+      color: var(--main-text);
+      word-break: break-all;
+    }
+
+    /* ---- Scrollable nav active ---- */
+    .nav-api-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 20px;
+      color: var(--sidebar-text);
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+    .nav-api-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ---- AI Notice Banner ---- */
+    .ai-notice {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--main-secondary);
+      font-size: 12.5px;
+      padding: 10px 16px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      flex-wrap: wrap;
+      line-height: 1.6;
+    }
+    .ai-notice-icon { color: var(--sidebar-accent); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .ai-notice-sep { color: var(--border); }
+    .ai-notice a {
+      color: var(--sidebar-accent);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 11px;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    .ai-notice a:hover { border-color: var(--sidebar-accent); }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; }
+      .content { padding: 24px 20px 60px; }
+      .interface-grid { grid-template-columns: 1fr; }
+      .quick-ref { grid-template-columns: 1fr; }
+      h1 { font-size: 22px; }
+    }
+
+    /* ---- Footer ---- */
+    .doc-footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 48px;
+      margin-left: var(--sidebar-width);
+      color: var(--main-secondary);
+      font-size: 13px;
+    }
+    .doc-footer a { color: var(--sidebar-accent); text-decoration: none; }
+    .doc-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<!-- Top Header -->
+<header class="top-header">
+  <a href="#overview" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="logo-text">NDL Search API</div>
+      <div class="logo-sub">国立国会図書館サーチ</div>
+    </div>
+  </a>
+  <div class="version-badge">第 1.3 版 &nbsp;·&nbsp; 2025.3.26</div>
+</header>
+
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="nav-section-label">はじめに</div>
+  <a href="#overview" class="nav-item">概要</a>
+  <a href="#common" class="nav-item">共通事項</a>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">API リファレンス</div>
+
+  <div class="nav-api-label">
+    <span class="nav-api-dot" style="background:#3b82f6"></span>SRU
+  </div>
+  <a href="#sru-overview" class="nav-item sub">概要</a>
+  <a href="#sru-request" class="nav-item sub">リクエスト形式</a>
+  <a href="#sru-params" class="nav-item sub">引数一覧</a>
+  <a href="#sru-cql" class="nav-item sub">CQL 仕様</a>
+  <a href="#sru-response" class="nav-item sub">返戻形式</a>
+  <a href="#sru-errors" class="nav-item sub">エラーメッセージ</a>
+  <a href="#sru-examples" class="nav-item sub">リクエスト例</a>
+
+  <div class="nav-api-label">
+    <span class="nav-api-dot" style="background:#f59e0b"></span>OpenSearch
+  </div>
+  <a href="#os-overview" class="nav-item sub">概要</a>
+  <a href="#os-params" class="nav-item sub">引数一覧</a>
+  <a href="#os-examples" class="nav-item sub">リクエスト例</a>
+
+  <div class="nav-api-label">
+    <span class="nav-api-dot" style="background:#8b5cf6"></span>OpenURL
+  </div>
+  <a href="#ou-overview" class="nav-item sub">概要</a>
+  <a href="#ou-genre" class="nav-item sub">genre 指定</a>
+  <a href="#ou-params" class="nav-item sub">検索項目一覧</a>
+  <a href="#ou-examples" class="nav-item sub">リクエスト例</a>
+
+  <div class="nav-api-label">
+    <span class="nav-api-dot" style="background:#10b981"></span>OAI-PMH
+  </div>
+  <a href="#oai-overview" class="nav-item sub">概要</a>
+  <a href="#oai-repo" class="nav-item sub">リポジトリ基本情報</a>
+  <a href="#oai-verbs" class="nav-item sub">サポートリクエスト</a>
+  <a href="#oai-set" class="nav-item sub">set（絞り込み）</a>
+  <a href="#oai-limit" class="nav-item sub">アクセス制限</a>
+  <a href="#oai-examples" class="nav-item sub">リクエスト例</a>
+
+  <div class="nav-api-label">
+    <span class="nav-api-dot" style="background:#ef4444"></span>書影 API
+  </div>
+  <a href="#thumb-overview" class="nav-item sub">概要</a>
+  <a href="#thumb-request" class="nav-item sub">リクエスト形式</a>
+  <a href="#thumb-examples" class="nav-item sub">リクエスト例</a>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">附録</div>
+  <a href="#appendix1" class="nav-item">附録1: データプロバイダ一覧</a>
+  <a href="#appendix1-discontinued" class="nav-item sub">連携停止済一覧</a>
+  <a href="#appendix1-thumbnail" class="nav-item sub">書影 API 対象一覧</a>
+  <a href="#appendix2" class="nav-item">附録2: データグループ・mediaType</a>
+  <a href="#appendix3" class="nav-item">附録3: コレクションコード</a>
+  <a href="#appendix3-ar" class="nav-item sub">Access Rights</a>
+
+  <div class="nav-divider"></div>
+  <div class="nav-section-label">その他</div>
+  <a href="#dcndl" class="nav-item">DC-NDL スキーマ</a>
+  <a href="#changelog" class="nav-item">改版履歴</a>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+<div class="content">
+
+  <!-- ====== OVERVIEW ====== -->
+  <section class="doc-section" id="overview">
+    <div class="ai-notice">
+      <span class="ai-notice-icon">✦</span>
+      <span>このページは <strong>Claude Sonnet 4.6</strong>（<code>claude-sonnet-4-6</code> / Anthropic）によって PDF から自動生成されました。原典は国立国会図書館サーチ 外部提供インタフェース仕様書（第 1.3 版）です。内容の正確性は原典 PDF でご確認ください。
+      <span class="ai-notice-sep">&nbsp;|&nbsp;</span>
+      原典 PDF:
+      <a href="ndlsearch_api_20250326.pdf" target="_blank">仕様書本体</a>
+      <a href="附録1_データプロバイダ一覧と外部提供インタフェース対応表.pdf" target="_blank">附録1</a>
+      <a href="附録2_データグループID・mediaType一覧.pdf" target="_blank">附録2</a>
+      <a href="附録3_コレクションコード・Access Rights一覧 .pdf" target="_blank">附録3</a></span>
+    </div>
+
+    <div class="api-hero">
+      <div class="section-eyebrow">外部提供インタフェース仕様書</div>
+      <h1>国立国会図書館サーチ API</h1>
+      <p>
+        各機関のアプリケーション等から「国立国会図書館サーチ」を検索し、メタデータを取得するための
+        外部提供インタフェース仕様を記述した公式ドキュメントです。<br>
+        すべての API のベース URL は <strong style="color:#86efac">https://ndlsearch.ndl.go.jp</strong> です。
+      </p>
+      <div class="hero-meta">
+        <div class="hero-meta-item">バージョン: <span>第 1.3 版</span></div>
+        <div class="hero-meta-item">最終更新: <span>2025.3.26</span></div>
+        <div class="hero-meta-item">文字コード: <span>UTF-8</span></div>
+        <div class="hero-meta-item">プロトコル: <span>HTTPS（HTTP は自動リダイレクト）</span></div>
+      </div>
+    </div>
+
+    <h2 class="section-header" id="interfaces">提供インタフェース一覧</h2>
+
+    <div class="interface-grid">
+      <a href="#sru-overview" class="interface-card">
+        <div class="card-icon" style="background:#eff6ff">🔍</div>
+        <div class="card-title">SRU</div>
+        <div class="card-desc">Z39.50 を REST で拡張した情報検索プロトコル。CQL クエリで高度な絞り込みが可能。</div>
+        <div class="card-badges">
+          <span class="badge badge-url">URL</span>
+          <span class="badge badge-xml">XML</span>
+        </div>
+      </a>
+      <a href="#os-overview" class="interface-card">
+        <div class="card-icon" style="background:#fffbeb">🌐</div>
+        <div class="card-title">OpenSearch</div>
+        <div class="card-desc">A9.com が提唱した横断検索プロトコル。シンプルな URL パラメータで利用可能。</div>
+        <div class="card-badges">
+          <span class="badge badge-url">URL</span>
+          <span class="badge badge-rss">RSS 2.0</span>
+        </div>
+      </a>
+      <a href="#ou-overview" class="interface-card">
+        <div class="card-icon" style="background:#fdf4ff">🔗</div>
+        <div class="card-title">OpenURL</div>
+        <div class="card-desc">メタデータを URL 形式でリンクサーバに送信する規格。検索結果は HTML で返戻。</div>
+        <div class="card-badges">
+          <span class="badge badge-url">URL</span>
+          <span class="badge badge-html">HTML</span>
+        </div>
+      </a>
+      <a href="#oai-overview" class="interface-card">
+        <div class="card-icon" style="background:#f0fdf4">📦</div>
+        <div class="card-title">OAI-PMH</div>
+        <div class="card-desc">サーバ間でメタデータを機械的に収集するための OAI 規約。差分ハーベストに対応。</div>
+        <div class="card-badges">
+          <span class="badge badge-url">URL</span>
+          <span class="badge badge-xml">XML</span>
+        </div>
+      </a>
+      <a href="#thumb-overview" class="interface-card">
+        <div class="card-icon" style="background:#fef2f2">🖼️</div>
+        <div class="card-title">書影 API</div>
+        <div class="card-desc">ISBN または JP-e コードを指定して書影（JPEG 画像）を取得する HTTP API。</div>
+        <div class="card-badges">
+          <span class="badge badge-url">URL</span>
+          <span class="badge badge-img">JPEG</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ====== COMMON ====== -->
+  <section class="doc-section" id="common">
+    <h2 class="section-header">共通事項</h2>
+
+    <h3>アクセス URL</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>インタフェース</th>
+            <th>ベース URL</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>SRU</td>
+            <td><code>https://ndlsearch.ndl.go.jp/api/sru</code></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>OpenSearch</td>
+            <td><code>https://ndlsearch.ndl.go.jp/api/opensearch</code></td>
+          </tr>
+          <tr>
+            <td rowspan="2">3</td>
+            <td rowspan="2">OpenURL</td>
+            <td><code>https://ndlsearch.ndl.go.jp/api/openurl</code></td>
+          </tr>
+          <tr>
+            <td><code>https://mina.ndl.go.jp/api/openurl</code></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>OAI-PMH</td>
+            <td><code>https://ndlsearch.ndl.go.jp/api/oaipmh</code></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>書影 API</td>
+            <td><code>https://ndlsearch.ndl.go.jp/thumbnail</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>HTTP でアクセスした場合は自動的に HTTPS にリダイレクトされます。OpenSearch の設定ファイル（OpenSearch Description Document）は <code>https://ndlsearch.ndl.go.jp/api/opensearch_description</code> で取得できます。</div>
+    </div>
+
+    <h3>データプロバイダ・データグループ</h3>
+    <p>
+      検索対象データベース（データプロバイダ）はデータプロバイダ ID で指定します。データグループを指定することで、複数のデータプロバイダを横断して検索することも可能です。最新の一覧は附録１・附録２を参照してください。
+    </p>
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div>書影 API はデータプロバイダ・データグループの指定はありません。</div>
+    </div>
+
+    <h3>mediaType</h3>
+    <p>
+      SRU・OpenSearch・OpenURL では <code>mediatype</code> パラメータによって資料の種別・形態を絞り込めます。最新の mediaType 一覧は附録２（「データグループ ID・mediaType 一覧」）を参照してください。OAI-PMH・書影 API では指定できません。
+    </p>
+
+    <h3>文字コード</h3>
+    <p>すべてのインタフェースで文字コードは <strong>UTF-8</strong> です。</p>
+
+    <h3>返戻データ形式（DC-NDL / dcndl_v3）</h3>
+    <p>
+      返戻データに含まれる <code>dcndl</code> スキーマは「国立国会図書館ダブリンコアメタデータ記述（DC-NDL）」に基づき本サービスで定義した形式です。詳細は <a href="#dcndl">DC-NDL スキーマ</a> を参照してください。
+    </p>
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div><code>dcndl_v3</code> は「DC-NDL（RDF）フォーマット仕様 ver.3.0」（2025年4月ドラフト版公開予定）に基づいた形式ですが、<strong>正式版ではない</strong>ことに留意してください。</div>
+    </div>
+
+    <h3>内部 JSON の参照</h3>
+    <p>本サービスの内部項目である JSON ファイルは以下のリクエスト形式で確認できます。</p>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/api/bib/external/search?cs=bib&amp;f-token=<span class="param">[リポジトリ番号-アイテム番号]</span></span>
+    </div>
+    <div class="code-label"><span class="dot"></span>リクエスト例</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/bib/external/search?cs=bib&amp;f-token=R100000039-I1000732</span></code></pre>
+  </section>
+
+  <!-- ====== SRU ====== -->
+  <section class="doc-section" id="sru">
+    <div class="section-eyebrow">API 1</div>
+    <h2 class="section-header" id="sru-overview">SRU（Search/Retrieve Via URL）</h2>
+
+    <p>
+      Z39.50 を発展させた、REST を利用して情報内容を検索するプロトコルです。本サービスでは <strong>SRU バージョン 1.1 および 1.2</strong> をサポートします（ZEEREX はサポートしません）。
+    </p>
+    <p>基本仕様: <a href="http://www.loc.gov/standards/sru/" target="_blank">http://www.loc.gov/standards/sru/</a></p>
+
+    <h3 class="section-header" id="sru-request">リクエスト形式</h3>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/api/sru?operation=searchRetrieve&amp;recordSchema=<span class="param">[schema]</span>&amp;query=<span class="param">[CQL]</span></span>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>サポートするオペレーションは <code>searchRetrieve</code> のみです（<code>explain</code>・<code>scan</code> はサポートしません）。</div>
+    </div>
+
+    <h3 class="section-header" id="sru-params">searchRetrieve の引数</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>引数名</th>
+            <th>必須/任意</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code>operation</code></td>
+            <td><span class="td-req">必須</span></td>
+            <td><code>"searchRetrieve"</code> を指定</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><code>version</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>1.1</code> または <code>1.2</code>。省略時は <code>1.2</code> とみなす</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><code>query</code></td>
+            <td><span class="td-req">必須</span></td>
+            <td>検索条件（CQL）。詳細は <a href="#sru-cql">CQL 仕様</a> を参照</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>startRecord</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td>取得開始位置。省略時は <code>1</code></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><code>maximumRecords</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td>最大取得件数（最大 500 件）。省略時は <code>200</code></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><code>recordPacking</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>"xml"</code> または <code>"string"</code>。省略時は <code>"string"</code></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><code>recordSchema</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>dc</code> または <code>dcndl</code>（省略時は <code>dc</code>）。<code>dcndl_v3</code>（ドラフト版）も指定可能</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><code>sortKeys</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td>ソートキー情報。<code>version=1.1</code> のときのみ有効</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td><code>path</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>title</code> / <code>creator</code> / <code>created_date</code> / <code>modified_date</code>。<code>version=1.1</code> かつ <code>sortKeys</code> 指定時のみ有効</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td><code>ascending</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>"0"</code>（降順）/ <code>"1"</code>（昇順・デフォルト）。<code>version=1.1</code> かつ <code>sortKeys</code> 指定時のみ有効</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td><code>inprocess</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>"true"</code> を指定すると国立国会図書館新着書誌情報のみを取得</td>
+          </tr>
+          <tr>
+            <td>17</td>
+            <td><code>onlyBib</code></td>
+            <td><span class="td-opt">任意</span></td>
+            <td><code>"true"</code> を指定すると書誌情報のみを取得。<code>recordSchema=dcndl</code> 指定時のみ有効</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div><strong>返戻件数の制約：</strong> <code>startRecord</code> と <code>maximumRecords</code> を指定しても、501 件目以降は取得できません（検索負荷回避のための制約）。</div>
+    </div>
+
+    <h3 class="section-header" id="sru-cql">CQL 仕様</h3>
+    <p>CQL 1.2 を基本とします。クエリは <code>AND</code>・<code>OR</code> で連結できます。</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div>検索キーワードに <code>AND</code>・<code>OR</code>（<code>andy</code>・<code>organic</code> なども含む）が含まれる場合は検索エラーになります。この場合は <code>%3d</code> の前後に <code>%20</code> を付与してください。<br><br>例: <code>title%20%3d%20%22andy%22</code></div>
+    </div>
+
+    <h4>検索項目一覧</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>参照名</th>
+            <th>内容</th>
+            <th>一致条件</th>
+            <th>論理条件</th>
+            <th>複数値</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td><code>dpid</code></td>
+            <td>データプロバイダ ID、データグループ ID、コレクションコード、AccessRights</td>
+            <td>完全一致</td>
+            <td><code>=</code> / <code>any</code></td>
+            <td>○（OR）</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><code>title</code></td>
+            <td>タイトル</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><code>creator</code></td>
+            <td>作成者</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><code>publisher</code></td>
+            <td>出版者</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td><code>digitized_publisher</code></td>
+            <td>デジタル化した製作者</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><code>ndc</code></td>
+            <td>分類（NDC、NDLC、LCC、DDC、UDC）</td>
+            <td>前方一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><code>ndlc</code></td>
+            <td>分類（NDLC）</td>
+            <td>前方一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><code>description</code></td>
+            <td>内容記述</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><code>subject</code></td>
+            <td>主題</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><code>isbn</code></td>
+            <td>ISBN（10桁・13桁どちらでも検索可能）</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>12</td>
+            <td><code>issn</code></td>
+            <td>ISSN</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td><code>jpno</code></td>
+            <td>全国書誌番号</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td><code>from</code></td>
+            <td>開始出版年月日（<code>YYYY</code>/<code>YYYY-MM</code>/<code>YYYY-MM-DD</code>）</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td><code>until</code></td>
+            <td>終了出版年月日（<code>YYYY</code>/<code>YYYY-MM</code>/<code>YYYY-MM-DD</code>）</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>16</td>
+            <td><code>anywhere</code></td>
+            <td>簡易検索と同一の全項目検索</td>
+            <td>部分一致</td>
+            <td>○</td>
+            <td>○（AND）</td>
+          </tr>
+          <tr>
+            <td>17</td>
+            <td><code>itemno</code></td>
+            <td>書誌トークン（形式: リポジトリ番号-アイテム番号）</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>×</td>
+          </tr>
+          <tr>
+            <td>18</td>
+            <td><code>mediatype</code></td>
+            <td>資料の種別・形態（附録２参照）</td>
+            <td>完全一致</td>
+            <td><code>=</code> のみ</td>
+            <td>○（OR）</td>
+          </tr>
+          <tr>
+            <td>19</td>
+            <td><code>sortBy</code></td>
+            <td>ソート基準（<code>version=1.2</code> 指定時のみ利用可）。<code>title</code> / <code>creator</code> / <code>issued_date</code> / <code>created_date</code> / <code>modified_date</code> に <code>/sort.ascending</code> か <code>/sort.descending</code> を続けて指定</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">💡</span>
+      <div>
+        <code>from</code> と <code>until</code> を両方指定する場合、指定フォーマットを揃える必要があります（例: <code>from=YYYY-MM</code> なら <code>until=YYYY-MM</code>）。<br>
+        同一項目に複数値を指定する際は <code>all</code>（AND）・<code>any</code>（OR）を使って簡潔に記述できます。<br>
+        例: <code>creator all 夏目 芥川</code>（= <code>creator=夏目 AND creator=芥川</code>）
+      </div>
+    </div>
+
+    <h3 class="section-header" id="sru-response">返戻形式（SearchRetrieve Response）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>項目名</th><th>戻り値</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Version</code></td><td>リクエストで指定したバージョン（<code>"1.2"</code> または <code>"1.1"</code>）</td></tr>
+          <tr><td><code>numberOfRecords</code></td><td>検索結果件数</td></tr>
+          <tr><td><code>nextRecordPosition</code></td><td>次レコード開始位置。次ページがない場合は <code>0</code></td></tr>
+          <tr><td><code>Diagnostics</code></td><td>エラーメッセージリスト</td></tr>
+          <tr><td><code>extraResponseData</code></td><td>ファセットデータ（データプロバイダ別件数・NDC分類別件数・出版年別件数）</td></tr>
+          <tr><td><code>Records</code></td><td>検索結果リスト（<code>dc</code> または <code>dcndl</code> スキーマ）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>ファセットデータの例</h4>
+    <div class="code-label"><span class="dot"></span>XML（extraResponseData）</div>
+    <pre class="code-block"><code><span class="hl-xml-tag">&lt;lst</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"REPOSITORY_NO"</span><span class="hl-xml-tag">&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"R100000001"</span><span class="hl-xml-tag">&gt;</span>159<span class="hl-xml-tag">&lt;/int&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"R100000004"</span><span class="hl-xml-tag">&gt;</span>7<span class="hl-xml-tag">&lt;/int&gt;</span>
+<span class="hl-xml-tag">&lt;/lst&gt;</span>
+
+<span class="hl-xml-tag">&lt;lst</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"NDC"</span><span class="hl-xml-tag">&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"7"</span><span class="hl-xml-tag">&gt;</span>1<span class="hl-xml-tag">&lt;/int&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"9"</span><span class="hl-xml-tag">&gt;</span>2<span class="hl-xml-tag">&lt;/int&gt;</span>
+<span class="hl-xml-tag">&lt;/lst&gt;</span>
+
+<span class="hl-xml-tag">&lt;lst</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"ISSUED_DATE"</span><span class="hl-xml-tag">&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"1600"</span><span class="hl-xml-tag">&gt;</span>1<span class="hl-xml-tag">&lt;/int&gt;</span>
+  <span class="hl-xml-tag">&lt;int</span> <span class="hl-xml-attr">name</span>=<span class="hl-xml-val">"1650"</span><span class="hl-xml-tag">&gt;</span>3<span class="hl-xml-tag">&lt;/int&gt;</span>
+<span class="hl-xml-tag">&lt;/lst&gt;</span></code></pre>
+
+    <h3 class="section-header" id="sru-errors">エラーメッセージ</h3>
+    <p>エラーは SRU 標準仕様「Diagnostics List」の形式で返戻されます。</p>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>No.</th><th>メッセージ</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>operation is not searchRetrieve</code></td><td><code>operation</code> に <code>searchRetrieve</code> が指定されていない</td></tr>
+          <tr><td>2</td><td><code>version must be 1.1 or 1.2</code></td><td>サポート外の version が指定されている</td></tr>
+          <tr><td>3</td><td><code>query must be present</code></td><td><code>query</code> が指定されていない</td></tr>
+          <tr><td>4</td><td><code>illegal query syntax</code></td><td><code>query</code> の値の解析に失敗した</td></tr>
+          <tr><td>5</td><td><code>illegal startRecord value</code></td><td><code>startRecord</code> の値が数字として扱えない</td></tr>
+          <tr><td>6</td><td><code>illegal maximumRecords value</code></td><td><code>maximumRecords</code> の値が数字として扱えない</td></tr>
+          <tr><td>7</td><td><code>illegal recordPacking value</code></td><td>サポート外の <code>recordPacking</code> が指定されている</td></tr>
+          <tr><td>8</td><td><code>illegal recordSchema value</code></td><td>サポート外の <code>recordSchema</code> が指定されている</td></tr>
+          <tr><td>9</td><td><code>illegal sortKeys value</code></td><td>version 1.1 で使用できる <code>sortKeys</code> の指定値が正しく扱えない</td></tr>
+          <tr><td>10</td><td><code>illegal mediaType value</code></td><td>サポート外の <code>mediaType</code> が指定されている</td></tr>
+          <tr><td>11</td><td><code>Record does not exist</code></td><td>条件に一致するレコードがない</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-header" id="sru-examples">リクエスト例（CQL 例）</h3>
+
+    <h4>例1: 2008年に出版されてタイトルに「桜」を含むもの</h4>
+    <p>CQL: <code>title="桜" AND from="2008" AND until="2008"</code></p>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/sru</span>?operation=searchRetrieve
+  &amp;query=<span class="hl-val">title%3d%22%e6%a1%9c%22%20AND%20from%3d%222008%22%20AND%20until%3d%222008%22</span></code></pre>
+
+    <h4>例2: 著者が「夏目漱石」のもの</h4>
+    <p>CQL: <code>creator="夏目漱石"</code></p>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/sru</span>?operation=searchRetrieve
+  &amp;query=<span class="hl-val">creator=%22%e5%a4%8f%e7%9b%ae%e6%bc%b1%e7%9f%b3%22</span></code></pre>
+  </section>
+
+  <!-- ====== OpenSearch ====== -->
+  <section class="doc-section" id="opensearch">
+    <div class="section-eyebrow">API 2</div>
+    <h2 class="section-header" id="os-overview">OpenSearch</h2>
+
+    <p>
+      A9.com が提唱した横断検索プロトコル。URL パラメータで検索リクエストを発行し、<strong>RSS 2.0</strong> 形式で結果を取得します。本サービスの対応バージョンは <strong>1.0</strong> です。
+    </p>
+    <p>基本仕様: <a href="https://github.com/dewitt/opensearch" target="_blank">https://github.com/dewitt/opensearch</a></p>
+
+    <h3>リクエスト形式</h3>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/api/opensearch?dpid=<span class="param">[dpid]</span>&amp;title=<span class="param">[title]</span>&amp;…</span>
+    </div>
+
+    <h3 class="section-header" id="os-params">引数一覧</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>No.</th><th>パラメータ名</th><th>内容</th><th>一致条件</th><th>複数指定</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>dpid</code></td><td>データプロバイダ ID、データグループ ID、コレクションコード、AccessRights</td><td>完全一致</td><td>○（OR）</td></tr>
+          <tr><td>2</td><td><code>dpgroupid</code></td><td>データプロバイダグループ ID</td><td>完全一致</td><td>×</td></tr>
+          <tr><td>3</td><td><code>any</code></td><td>すべての項目を対象に検索</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>4</td><td><code>title</code></td><td>タイトル</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>5</td><td><code>creator</code></td><td>作成者</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>6</td><td><code>publisher</code></td><td>出版者</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>7</td><td><code>digitized_publisher</code></td><td>デジタル化した製作者</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>8</td><td><code>ndc</code></td><td>分類（NDC、NDLC）</td><td>前方一致</td><td>×</td></tr>
+          <tr><td>9</td><td><code>from</code></td><td>開始出版年月日（<code>YYYY</code>/<code>YYYY-MM</code>/<code>YYYY-MM-DD</code>）</td><td>—</td><td>×</td></tr>
+          <tr><td>10</td><td><code>until</code></td><td>終了出版年月日（<code>YYYY</code>/<code>YYYY-MM</code>/<code>YYYY-MM-DD</code>）</td><td>—</td><td>×</td></tr>
+          <tr><td>11</td><td><code>cnt</code></td><td>出力レコード上限値（最大 500 件、省略時 200）</td><td>—</td><td>×</td></tr>
+          <tr><td>12</td><td><code>idx</code></td><td>レコード取得開始位置（省略時は 1）</td><td>—</td><td>×</td></tr>
+          <tr><td>13</td><td><code>isbn</code></td><td>ISBN（10 桁・13 桁入力時は両方に変換して完全一致。それ以外は前方一致）</td><td>完全一致 or 前方一致</td><td>×</td></tr>
+          <tr><td>14</td><td><code>mediatype</code></td><td>資料種別（附録２参照）</td><td>完全一致</td><td>○（OR）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>
+        項目間の論理条件はすべて <strong>AND</strong> です。<br>
+        一つの検索項目内に半角スペースで複数キーワードを指定できます（<code>dpid</code>・<code>mediatype</code> は OR 検索、それ以外は AND 検索）。<br>
+        <code>dpid</code> のみを指定した検索はできません。<br>
+        引数の誤りがあった場合は検索結果 0 件になります（エラーは返戻されません）。
+      </div>
+    </div>
+
+    <h3 class="section-header" id="os-examples">リクエスト例</h3>
+
+    <h4>例1: タイトルに「マリーアントワネット」を含むもの</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/opensearch</span>?title=<span class="hl-val">%e3%83%9e%e3%83%aa%e3%83%bc%e3%82%a2%e3%83%b3%e3%83%88%e3%83%af%e3%83%8d%e3%83%83%e3%83%88</span></code></pre>
+
+    <h4>例2: 青空文庫の中で著者に「夏目」を含むもの</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/opensearch</span>?dpid=<span class="hl-val">aozora</span>&amp;creator=<span class="hl-val">%e5%a4%8f%e7%9b%ae</span></code></pre>
+  </section>
+
+  <!-- ====== OpenURL ====== -->
+  <section class="doc-section" id="openurl">
+    <div class="section-eyebrow">API 3</div>
+    <h2 class="section-header" id="ou-overview">OpenURL</h2>
+
+    <p>
+      コンテンツのリンク先を指定するためにメタデータを URL 形式でリンクサーバに送信する規格です。検索結果は <strong>HTML（ブラウザ表示）</strong> で返戻されます。
+    </p>
+    <p>基本仕様: <a href="https://www.niso.org/publications/z3988-2004-r2010-openurl-framework-context-sensitive-services" target="_blank">NISO Z39.88-2004 (R2010)</a></p>
+
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div>返される HTML は本サービスの Web 検索結果画面と同一のため、本サービスの対応ブラウザでのみ表示が可能です。</div>
+    </div>
+
+    <h3>リクエスト形式</h3>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/api/openurl?genre=<span class="param">[genre]</span>&amp;…</span>
+    </div>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://mina.ndl.go.jp</span>/api/openurl?au=<span class="param">[au]</span>&amp;…</span>
+    </div>
+
+    <h3 class="section-header" id="ou-genre">genre 指定と検索先</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>genre 指定</th><th>検索対象</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>genre=article</code></td><td>記事レベルの書誌のみ</td></tr>
+          <tr><td><code>genre=title</code> / <code>genre=book</code></td><td>記事レベル以外の書誌（タイトルレベル・図書/巻号レベル）</td></tr>
+          <tr><td>（指定なし）</td><td>すべてのデータ</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div><code>genre</code>（または <code>rft.genre</code>）による指定と <code>atitle</code>/<code>btitle</code> による指定に矛盾がある場合はエラーになります。また、<code>ndl_dpid</code> を指定すると <code>genre</code> によるデータプロバイダ指定は無効になります。</div>
+    </div>
+
+    <h3 class="section-header" id="ou-params">指定可能な検索項目</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>項目</th>
+            <th>article</th>
+            <th>article以外</th>
+            <th>指定なし</th>
+            <th>一致条件</th>
+            <th>複数</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><code>aulast</code>（<code>rft.aulast</code>）</td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>×</td></tr>
+          <tr><td>2</td><td><code>aufirst</code>（<code>rft.aufirst</code>）</td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>×</td></tr>
+          <tr><td>3</td><td><code>au</code>（<code>rft.au</code>）</td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>4</td><td><code>title</code> / <code>atitle</code>（<code>rft.title</code> / <code>rft.atitle</code>）</td><td class="center">○</td><td class="center">—</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>5</td><td><code>btitle</code>（<code>rft.btitle</code>）</td><td class="center">—</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>6</td><td><code>jtitle</code>（<code>rft.jtitle</code>）</td><td class="center">○</td><td class="center">—</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>7</td><td><code>pub</code>（<code>rft.pub</code>）</td><td class="center">—</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>8</td><td><code>issn</code>（<code>rft.issn</code>）</td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>前方一致</td><td>×</td></tr>
+          <tr><td>9</td><td><code>isbn</code>（<code>rft.isbn</code>）</td><td class="center">—</td><td class="center">○</td><td class="center">○</td><td>完全一致 or 前方一致</td><td>×</td></tr>
+          <tr><td>10</td><td><code>any</code></td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>部分一致</td><td>○</td></tr>
+          <tr><td>11</td><td><code>ndl_jpno</code>（独自拡張）</td><td class="center">—</td><td class="center">○</td><td class="center">○</td><td>前方一致</td><td>×</td></tr>
+          <tr><td>12</td><td><code>ndl_dpid</code>（独自拡張）</td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td>完全一致</td><td>○（OR）</td></tr>
+          <tr><td>13</td><td><code>mediatype</code>（独自拡張）</td><td class="center">○</td><td class="center">—</td><td class="center">○</td><td>完全一致</td><td>○</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>
+        項目間の論理条件はすべて AND です。<br>
+        <code>isbn</code>・<code>issn</code>・<code>ndl_jpno</code> 以外は空白区切りで複数ワードを指定可能（<code>ndl_dpid</code> は OR 検索、他は AND 検索）。<br>
+        <code>aufirst</code> と <code>aulast</code> を同時に指定した場合は AND 検索。<br>
+        返戻件数は最大 10,000 件。
+      </div>
+    </div>
+
+    <h3 class="section-header" id="ou-examples">リクエスト例</h3>
+
+    <h4>例1: タイトルに「電子図書館」を含むもの</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/openurl</span>?btitle=<span class="hl-val">%e9%9b%bb%e5%ad%90%e5%9b%b3%e6%9b%b8%e9%a4%a8</span></code></pre>
+
+    <h4>例2: 著者に「夏目漱石」を含むもの</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/openurl</span>?au=<span class="hl-val">%e5%a4%8f%e7%9b%ae%e6%bc%b1%e7%9f%b3</span></code></pre>
+  </section>
+
+  <!-- ====== OAI-PMH ====== -->
+  <section class="doc-section" id="oaipmh">
+    <div class="section-eyebrow">API 4</div>
+    <h2 class="section-header" id="oai-overview">OAI-PMH</h2>
+
+    <p>
+      OAI（Open Archives Initiative）が定めたサーバ間メタデータ収集プロトコルです。差分ハーベストにより、更新されたメタデータのみを効率的に収集できます。
+    </p>
+    <p>基本仕様: <a href="http://www.openarchives.org/OAI/openarchivesprotocol.html" target="_blank">http://www.openarchives.org/OAI/openarchivesprotocol.html</a></p>
+    <p>日本語訳（国立情報学研究所）: <a href="https://www.nii.ac.jp/irp/archive/translation/oai-pmh2.0/" target="_blank">https://www.nii.ac.jp/irp/archive/translation/oai-pmh2.0/</a></p>
+
+    <h3>リクエスト形式</h3>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/api/oaipmh?verb=<span class="param">[verb]</span>&amp;…</span>
+    </div>
+
+    <h3 class="section-header" id="oai-repo">リポジトリ基本情報（Identify レスポンス）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>タグ名</th><th>応答値</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>repositoryName</code></td><td>国立国会図書館サーチ</td></tr>
+          <tr><td><code>baseURL</code></td><td><code>https://ndlsearch.ndl.go.jp/api/oaipmh</code></td></tr>
+          <tr><td><code>protocolVersion</code></td><td>Version 2.0</td></tr>
+          <tr><td><code>deletedRecord</code></td><td><code>persistent</code></td></tr>
+          <tr><td><code>granularity</code></td><td><code>YYYY-MM-DDThh:mm:ssZ</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-header" id="oai-verbs">サポートリクエスト（verb）と引数</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>verb</th>
+            <th>identifier</th>
+            <th>metadataPrefix</th>
+            <th>from</th>
+            <th>until</th>
+            <th>set</th>
+            <th>resumptionToken</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td><code>GetRecord</code></td>
+            <td class="center"><strong>◎</strong></td><td class="center"><strong>◎</strong></td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+          </tr>
+          <tr>
+            <td>2</td><td><code>Identify</code></td>
+            <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+          </tr>
+          <tr>
+            <td>3</td><td><code>ListIdentifiers</code></td>
+            <td class="center">—</td><td class="center"><strong>◎</strong></td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td class="center">○</td>
+          </tr>
+          <tr>
+            <td>4</td><td><code>ListMetadataFormats</code></td>
+            <td class="center">○</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td>
+          </tr>
+          <tr>
+            <td>5</td><td><code>ListRecords</code></td>
+            <td class="center">—</td><td class="center"><strong>◎</strong></td><td class="center">○</td><td class="center">○</td><td class="center">○</td><td class="center">○</td>
+          </tr>
+          <tr>
+            <td>6</td><td><code>ListSets</code></td>
+            <td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">—</td><td class="center">○</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:12px;color:var(--main-secondary)">◎：必須、○：任意</p>
+
+    <h4>metadataPrefix（返戻スキーマ）</h4>
+    <ul>
+      <li><code>oai_dc</code>: Dublin Core 形式</li>
+      <li><code>dcndl</code>: DC-NDL 形式（国立国会図書館拡張）</li>
+      <li><code>dcndl_v3</code>: DC-NDL ver.3.0（ドラフト版のため注意）</li>
+    </ul>
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div><code>dcndl_v1</code> を指定した場合、個体情報（<code>dcndl:Item</code>）は 1 メタデータにつき 1 件のみ返戻されます。</div>
+    </div>
+
+    <h4>identifier 形式</h4>
+    <p>本サービスでは identifier として <strong>メタデータ ID</strong> を使用します。</p>
+    <div class="code-label"><span class="dot"></span>形式</div>
+    <pre class="code-block"><code>oai(ドメイン名):[リポジトリ番号]-[アイテム番号]
+
+<span class="hl-comment">例: oai:ndlsearch.ndl.go.jp:R100000002-I000001287827</span></code></pre>
+
+    <h3 class="section-header" id="oai-set">set（選択的ハーベスト）</h3>
+    <p>set を指定することで特定グループのデータのみを取得できます。</p>
+    <ul>
+      <li>データプロバイダ ID</li>
+      <li>データグループ ID</li>
+      <li>コレクションコード（<code>ndl-dl</code> / <code>ndl-dl-online</code> にのみ付与）</li>
+      <li>公開範囲（Access Rights）（<code>ndl-dl</code> / <code>ndl-dl-online</code> にのみ付与）</li>
+    </ul>
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div>複数の set を掛け合わせて検索することはできません。また、set を指定して収集している場合、メタデータ上の値が変更されても削除レコードが出力されないため、<strong>定期的に全件を収集して洗い替える</strong>ことを推奨します。</div>
+    </div>
+
+    <h3 class="section-header" id="oai-limit">OAI-PMH アクセス制限</h3>
+    <p>大量アクセスによる負荷を回避するため、以下の制限があります。</p>
+    <ul>
+      <li><code>ListRecords</code> および <code>ListIdentifiers</code> では <code>from</code> が<strong>必須</strong></li>
+      <li>指定可能な期間（<code>from</code>〜<code>until</code>）は <strong>最大1年</strong></li>
+      <li><code>until</code> を省略した場合、<code>from</code> から 1 年後が <code>until</code> とみなされる</li>
+      <li>一度に返戻される件数は <strong>200件</strong>。201件目以降は <code>resumptionToken</code> を使って続きを取得</li>
+    </ul>
+    <div class="callout info">
+      <span class="callout-icon">🕐</span>
+      <div>本サービスのタイムゾーンは JST です。<code>from</code>・<code>until</code> は JST として処理され、返戻データの <code>datestamp</code> も JST で返されます。</div>
+    </div>
+
+    <h3 class="section-header" id="oai-examples">リクエスト例</h3>
+    <div class="code-label"><span class="dot"></span>Identify</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">Identify</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>ListMetadataFormats</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListMetadataFormats</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>ListIdentifiers（from 指定）</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListIdentifiers</span>
+  &amp;metadataPrefix=<span class="hl-val">oai_dc</span>
+  &amp;from=<span class="hl-val">2024-01-05</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>ListRecords（青空文庫、from 指定）</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListRecords</span>
+  &amp;metadataPrefix=<span class="hl-val">oai_dc</span>
+  &amp;set=<span class="hl-val">aozora</span>
+  &amp;from=<span class="hl-val">2024-01-05</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>GetRecord（特定レコード取得）</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">GetRecord</span>
+  &amp;metadataPrefix=<span class="hl-val">oai_dc</span>
+  &amp;identifier=<span class="hl-val">oai:ndlsearch.ndl.go.jp:R100000002-I000001287827</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>ListSets</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListSets</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>コレクションコードを指定して検索</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListIdentifiers</span>
+  &amp;metadataPrefix=<span class="hl-val">oai_dc</span>
+  &amp;from=<span class="hl-val">2024-01-05</span>
+  &amp;set=<span class="hl-val">A00001</span></code></pre>
+
+    <div class="code-label"><span class="dot"></span>公開範囲（Access Rights）を指定して検索</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/api/oaipmh</span>?verb=<span class="hl-val">ListIdentifiers</span>
+  &amp;metadataPrefix=<span class="hl-val">oai_dc</span>
+  &amp;from=<span class="hl-val">2024-01-10</span>
+  &amp;set=<span class="hl-val">ARinternet</span></code></pre>
+  </section>
+
+  <!-- ====== 書影 API ====== -->
+  <section class="doc-section" id="thumbnail">
+    <div class="section-eyebrow">API 5</div>
+    <h2 class="section-header" id="thumb-overview">書影 API</h2>
+
+    <p>
+      ISBN または JP-e コードを指定して、本サービスに保存・公開されている書影（JPEG 画像）を HTTP で取得するインタフェースです。
+    </p>
+
+    <h3 class="section-header" id="thumb-request">リクエスト形式</h3>
+    <div class="url-block">
+      <span class="method">GET</span>
+      <span class="url-text"><span class="base">https://ndlsearch.ndl.go.jp</span>/thumbnail/<span class="param">[isbn または JP-eコード]</span>.jpg</span>
+    </div>
+
+    <h3>ISBN / JP-e コードの指定</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>種別</th><th>形式</th><th>注意事項</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ISBN</td>
+            <td>13桁（ISBN-13形式）</td>
+            <td>ハイフンなしで入力。10桁（ISBN-10形式）は使用不可</td>
+          </tr>
+          <tr>
+            <td>JP-eコード</td>
+            <td>20桁の英数字</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>返戻形式</h3>
+    <ul>
+      <li>書影が存在する場合: JPEG 画像を返戻</li>
+      <li>書影が存在しない場合（ISBN が不正・未指定・公開中の書影なし）: <code>HTTP 404 Not Found</code> を返戻</li>
+      <li>1 回のアクセスで指定できる ISBN/JP-e コードは <strong>1件</strong></li>
+    </ul>
+
+    <h3 class="section-header" id="thumb-examples">リクエスト例</h3>
+
+    <h4>ISBN で書影を取得（ISBN: 978-4-9999-9999-6）</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/thumbnail/9784999999996.jpg</span></code></pre>
+
+    <h4>JP-e コードで書影を取得</h4>
+    <div class="code-label"><span class="dot"></span>リクエスト URL</div>
+    <pre class="code-block"><code><span class="hl-url">https://ndlsearch.ndl.go.jp/thumbnail/9999999999100011000A.jpg</span></code></pre>
+  </section>
+
+  <!-- ====== 附録1 ====== -->
+  <section class="doc-section" id="appendix1">
+    <div class="section-eyebrow">附録 1</div>
+    <h2 class="section-header">データプロバイダ一覧と外部提供インタフェース対応表</h2>
+    <p>最終更新: 2025.11.5</p>
+    <p>
+      各データプロバイダへのアクセスは <strong>検索用 API</strong>（SRU・OpenSearch・OpenURL）と
+      <strong>ハーベスト用 API</strong>（OAI-PMH）で異なります。
+    </p>
+
+    <h3 class="section-header" id="appendix1-active">表1: データプロバイダ一覧</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>データプロバイダ名称</th>
+            <th>データプロバイダ ID</th>
+            <th>リポジトリ番号</th>
+            <th>検索用 API</th>
+            <th>ハーベスト用 API</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>国立国会図書館雑誌記事索引 (*1)</td><td><code>zassaku</code></td><td>R000000004</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館雑誌記事索引オンライン資料編 (*2)</td><td><code>zassaku-online</code></td><td>R000000004</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>新書マップ</td><td><code>shinsho</code></td><td>R000000005</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>レファレンス協同データベース</td><td><code>refkyo</code></td><td>R000000006</td><td class="center">×</td><td class="center">×</td></tr>
+          <tr><td>カレントアウェアネス</td><td><code>awareness</code></td><td>R000000007</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>デジタル岡山大百科</td><td><code>okayama</code></td><td>R000000013</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>青空文庫</td><td><code>aozora</code></td><td>R000000014</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>J-STAGE</td><td><code>jstage</code></td><td>R000000016</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>インターネット資料収集保存事業（WARP）</td><td><code>warp</code></td><td>R000000020</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>学術機関リポジトリデータベース（IRDB）</td><td><code>irdb</code></td><td>R000000025</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>日本ペンクラブ 電子文藝館</td><td><code>penclub</code></td><td>R000000030</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>奈良女子大学学術情報センター提供電子画像集</td><td><code>narajo</code></td><td>R000000032</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>茨城県立図書館デジタルライブラリー</td><td><code>ibaraki</code></td><td>R000000034</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>神戸大学附属図書館デジタルアーカイブ新聞記事文庫</td><td><code>u-kobe</code></td><td>R000000035</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>奈良県地域史料目録</td><td><code>nara-tiiki</code></td><td>R000000038</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>まほろばデジタルライブラリー</td><td><code>nara-book</code></td><td>R000000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>筑波大学附属図書館 貴重書コレクション</td><td><code>tsukuba</code></td><td>R000000046</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>沖縄戦関係資料閲覧室 所蔵資料検索（電子化済）</td><td><code>okinawa-1</code></td><td>R000000047</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>沖縄戦関係資料閲覧室 所蔵資料検索（未電子化）</td><td><code>okinawa-2</code></td><td>R000000048</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>古典籍総合データベース（早稲田大学図書館）</td><td><code>waseda</code></td><td>R000000050</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>水産研究・教育機構図書資料デジタルアーカイブ</td><td><code>suisan</code></td><td>R000000051</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>叡智の杜 Web（宮城県図書館）</td><td><code>miyagi</code></td><td>R000000054</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>広島市立中央図書館 特別コレクション</td><td><code>hiroshima-c</code></td><td>R000000055</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>札幌市中央図書館デジタルライブラリー</td><td><code>sapporo</code></td><td>R000000058</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>北海道立図書館 北方資料デジタル・ライブラリー</td><td><code>hokkaido</code></td><td>R000000059</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>徳島県立図書館 デジタルライブラリ</td><td><code>tokushima</code></td><td>R000000061</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>大阪府立図書館 おおさか e コレクション</td><td><code>osaka-n</code></td><td>R000000062</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>埼玉県立図書館 デジタルライブラリー</td><td><code>saitama</code></td><td>R000000185</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>千葉県デジタルアーカイブ</td><td><code>chiba</code></td><td>R000000187</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>山形県立図書館デジタルライブラリー</td><td><code>yamagata</code></td><td>R000000189</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>イーハトーブ岩手電子図書館（岩手県立図書館）</td><td><code>iwate</code></td><td>R000000190</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>川崎市立図書館 Web ギャラリー</td><td><code>kawasakishi</code></td><td>R000000191</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>神奈川県立図書館 デジタルアーカイブ</td><td><code>kanagawa</code></td><td>R000000193</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>富山県立図書館 古絵図・貴重書ギャラリー</td><td><code>toyama</code></td><td>R000000194</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>岐阜県図書館 岐阜県関係資料＋地図資料</td><td><code>gifu</code></td><td>R000000195</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>都市横浜の記憶（横浜市中央図書館）</td><td><code>yokohama</code></td><td>R000000196</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>宮田村インターネット博物館</td><td><code>miyada</code></td><td>R000000198</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>静岡県立中央図書館 デジタルライブラリー</td><td><code>shizuoka</code></td><td>R000000199</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>函館市中央図書館所蔵デジタルアーカイブ デジタル資料館</td><td><code>hakodate</code></td><td>R000000202</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>宮崎県立図書館 貴重書デジタルアーカイブ</td><td><code>miyazaki</code></td><td>R000000204</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>滋賀県立図書館 近江デジタル歴史街道</td><td><code>shiga</code></td><td>R000000205</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>新潟県立図書館 新潟県立文書館 越後佐渡デジタルライブラリー</td><td><code>niigata</code></td><td>R000000206</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>公共図書館蔵書（総合目録ネットワーク（ゆにかねっと））</td><td><code>iss-yunika</code></td><td>R100000001</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>国立国会図書館蔵書 (*3)</td><td><code>iss-ndl-opac</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館蔵書（巻号以外）(*4)</td><td><code>iss-ndl-opac-bib</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館 新着書誌情報 (*5)</td><td><code>iss-ndl-opac-inprocess</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館 全国書誌情報 (*6)</td><td><code>iss-ndl-opac-national</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館日本関係外国語図書 (*7)</td><td><code>ndl-boj</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>ISSN 登録国内発行オンラインジャーナル (*8)</td><td><code>issn-online</code></td><td>R100000002</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>サピエ図書館資料検索</td><td><code>sapie</code></td><td>R100000038</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>国立国会図書館デジタルコレクション (*9)</td><td><code>ndl-dl</code></td><td>R100000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館デジタルコレクション（電子書籍・電子雑誌）</td><td><code>ndl-dl-online</code></td><td>R100000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館デジタルコレクション（オープンデータ）(*10)</td><td><code>ndl-dl-open</code></td><td>R100000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館デジタルコレクション（DOI付与対象）</td><td><code>ndl-dl-doi</code></td><td>R100000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立国会図書館オンライン資料（記事）(*11)</td><td><code>ndl-article-online</code></td><td>R000000004 / R100000039</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>日本原子力研究開発機構所蔵目録データベース</td><td><code>jaea</code></td><td>R100000046</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>障害者用資料 総合目録</td><td><code>tenroku</code></td><td>R100000049</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>視覚障害者等用デジタル資料</td><td><code>ndl-dl-daisy</code></td><td>R100000073</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>農林水産関係試験研究機関総合目録</td><td><code>nosui</code></td><td>R100000074</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>沖縄県立図書館『貴重資料デジタル書庫』</td><td><code>okinawa-rare-digital</code></td><td>R100000075</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>JapanKnowledge</td><td><code>japanknowledge</code></td><td>R100000076</td><td class="center">×</td><td class="center">×</td></tr>
+          <tr><td>東京都立図書館デジタルアーカイブ（TOKYO アーカイブ）</td><td><code>tokyo-metro-da</code></td><td>R100000086</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>駒澤大学電子貴重書庫</td><td><code>komazawa-univ</code></td><td>R100000087</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立女性教育会館女性デジタルアーカイブシステム</td><td><code>nwec-womens-da</code></td><td>R100000088</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>山梨デジタルアーカイブ（山梨県立図書館）</td><td><code>yamanashi-da</code></td><td>R100000089</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>農林水産省図書館・電子化図書一覧公開システム</td><td><code>nosui-library-da</code></td><td>R100000090</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>九大コレクション</td><td><code>kyudai</code></td><td>R100000092</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>デジタルアーカイブシステム ADEAC</td><td><code>adeac</code></td><td>R100000094</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>NDL 電子ブック・電子ジャーナル</td><td><code>ndl-ejournals</code></td><td>R100000097</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>メディア芸術データベース（マンガ）</td><td><code>ma-db</code></td><td>R100000098</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>最高裁判所図書館 蔵書検索</td><td><code>s-court</code></td><td>R100000099</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>慶應義塾大学メディアセンター デジタルコレクション</td><td><code>keio</code></td><td>R100000100</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>青森県立図書館デジタルアーカイブ</td><td><code>aomori</code></td><td>R100000101</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>東京大学学術資産等アーカイブズポータル</td><td><code>u-tokyo</code></td><td>R100000102</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>デジタルアーカイブ福井</td><td><code>fukui</code></td><td>R100000103</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>群馬県立図書館デジタルライブラリー</td><td><code>gunma</code></td><td>R100000104</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>京都大学蔵書検索 KULINE 貴重資料</td><td><code>u-kyoto</code></td><td>R100000105</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>教育図書館貴重資料デジタルコレクション</td><td><code>nier-rare</code></td><td>R100000106</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>大阪市立図書館デジタルアーカイブ</td><td><code>osaka-c</code></td><td>R100000107</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>教育図書館往来物デジタルアーカイブ</td><td><code>nier-orai</code></td><td>R100000108</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>教育図書館近代教科書デジタルアーカイブ</td><td><code>nier-mode</code></td><td>R100000109</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>教育図書館戦後教育資料デジタルアーカイブ</td><td><code>nier-postw</code></td><td>R100000110</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>食の文化ライブラリー蔵書目録検索</td><td><code>ajinomoto</code></td><td>R100000111</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>琉球・沖縄関係貴重資料デジタルアーカイブ</td><td><code>u-ryukyu</code></td><td>R100000112</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>佐賀県立図書館データベース</td><td><code>saga</code></td><td>R100000113</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>関西大学デジタルアーカイブ</td><td><code>u-kansai</code></td><td>R100000114</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>九州産業大学図書館デジタルアーカイブ</td><td><code>kyusan</code></td><td>R100000115</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>島根大学附属図書館デジタルアーカイブ</td><td><code>shimane-u</code></td><td>R100000116</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>デジタルアーカイブ福井（福井新聞縮刷版）</td><td><code>fukui-newspaper</code></td><td>R100000117</td><td class="center">×</td><td class="center">×</td></tr>
+          <tr><td>大東文化大学デジタルアーカイブス</td><td><code>daito</code></td><td>R100000118</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>広島修道大学デジタルアーカイブ</td><td><code>shudo</code></td><td>R100000119</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>とっとりデジタルコレクション</td><td><code>tottori-dc</code></td><td>R100000120</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>食の文化ライブラリーデジタルアーカイブス</td><td><code>ajinomoto-d</code></td><td>R100000121</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>鎌倉市図書館近代史資料室</td><td><code>kamakura</code></td><td>R100000122</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>同志社大学デジタルコレクション</td><td><code>doshisha</code></td><td>R100000123</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>京の記憶アーカイブ</td><td><code>kyoto</code></td><td>R100000124</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>徳島大学附属図書館貴重資料高精細デジタルアーカイブ</td><td><code>u-tokushima</code></td><td>R100000125</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>三康図書館蔵書検索</td><td><code>sanko</code></td><td>R100000126</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>日本近代文学館 図書・雑誌検索（児童書）</td><td><code>bungakukan</code></td><td>R100000127</td><td class="center">×</td><td class="center">×</td></tr>
+          <tr><td>大阪府立中央図書館国際児童文学館 蔵書目録</td><td><code>osaka-jibunkan</code></td><td>R100000128</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>白百合女子大学 児童文化研究センター三文庫</td><td><code>shirayuri</code></td><td>R100000129</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>梅花女子大学図書館蔵書目録（児童書）</td><td><code>baika</code></td><td>R100000132</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>石川県立図書館総合検索（SHOSHO）</td><td><code>ishikawa-da</code></td><td>R100000133</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>県立神奈川近代文学館蔵書検索</td><td><code>kanabun</code></td><td>R100000134</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>龍谷大学図書館 貴重資料画像データベース「龍谷蔵」</td><td><code>ryukoku</code></td><td>R100000135</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>CiNii Research</td><td><code>ciniir</code></td><td>R100000136</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）(*12)</td><td><code>jpro</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）（紙書籍）(*12)</td><td><code>jpro-book</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）（電子書籍）(*12)</td><td><code>jpro-online</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）（オーディオブック）(*12)</td><td><code>jpro-audiobook</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）（電子書籍）（リポジトリ収録資料）(*13)</td><td><code>jpro-online-repository</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>出版情報登録センター（JPRO）（電子書籍）（TTSあり）(*13)</td><td><code>jpro-online-tts</code></td><td>R100000137</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>なごやコレクション</td><td><code>nagoya</code></td><td>R100000138</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>千葉大学学術リソースコレクション c-arc</td><td><code>chiba-u</code></td><td>R100000139</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>オーテピア高知図書館 収蔵品検索データベース</td><td><code>kochi</code></td><td>R100000140</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>国立情報学研究所読書バリアフリー資料メタデータ共有システム</td><td><code>irdb-pub</code></td><td>R100000141</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>広島県立図書館 貴重資料コレクション</td><td><code>hiroshima</code></td><td>R100000142</td><td class="center">○</td><td class="center">×</td></tr>
+          <tr><td>茨城大学デジタルコレクション</td><td><code>ibaraki-u</code></td><td>R100000143</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>神戸大学附属図書館デジタルアーカイブ貴重書・特殊コレクション</td><td><code>u-kobe-s</code></td><td>R100000144</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>水俣学アーカイブ</td><td><code>minamata</code></td><td>R100000145</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>ディープライブラリー</td><td><code>dlib</code></td><td>R100000146</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>大倉精神文化研究所附属図書館蔵書検索</td><td><code>okura</code></td><td>R100000147</td><td class="center">○</td><td class="center">○</td></tr>
+          <tr><td>新発田市立歴史図書館デジタルアーカイブ</td><td><code>shibata</code></td><td>R100000148</td><td class="center">○</td><td class="center">○</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>
+        <strong>検索用 API</strong>: SRU・OpenSearch・OpenURL<br>
+        <strong>ハーベスト用 API</strong>: OAI-PMH
+      </div>
+    </div>
+
+    <h4>主要データプロバイダの注記</h4>
+    <ul>
+      <li><strong>*1 zassaku</strong>: 国立国会図書館が収集した採録対象誌から採録した記事の書誌。<code>zassaku-online</code> のメタデータを含まない。</li>
+      <li><strong>*2 zassaku-online</strong>: インターネット等を通じて刊行された雑誌から採録した記事の書誌。<code>ndl-dl-online</code> の記事書誌を含まない。</li>
+      <li><strong>*3 iss-ndl-opac</strong>: 国立国会図書館蔵書（国内刊行図書・洋図書・博士論文・地図資料等）。雑誌の巻号レベルの書誌を含む。</li>
+      <li><strong>*4 iss-ndl-opac-bib</strong>: <code>iss-ndl-opac</code> のうち、新たに出力されるようになった雑誌の巻号レベルの書誌を含まない集合（2023年12月までの NDLサーチの <code>iss-ndl-opac</code> と同等）。</li>
+      <li><strong>*5 iss-ndl-opac-inprocess</strong>: 作成中の全国書誌データ（新着書誌）。当館納入後約4日で取得可能。SRU では <code>inprocess=true</code> でも検索可能。</li>
+      <li><strong>*6 iss-ndl-opac-national</strong>: 作成が完了した全国書誌データ。全国書誌番号を持つ。</li>
+      <li><strong>*7 ndl-boj</strong>: 2002年以降に作成された、主題が日本と関係する、または著者に日本人・日系人が含まれる欧文図書・アジア言語図書・外国語児童書の書誌。</li>
+      <li><strong>*8 issn-online</strong>: ISSN日本センターで ISSN を登録・管理している国内発行のオンラインジャーナル等の書誌。</li>
+      <li><strong>*9 ndl-dl</strong>: 国立国会図書館デジタルコレクション。<code>ndl-dl-online</code> のメタデータを含まない。</li>
+      <li><strong>*10 ndl-dl-open</strong>: <code>ndl-dl</code>・<code>ndl-dl-online</code> のうち、CC BY 互換条件でメタデータをオープンデータとして利用可能な書誌。</li>
+      <li><strong>*11 ndl-article-online</strong>: オンライン資料の記事書誌を横断的に取得可能なデータプロバイダ。<code>zassaku-online</code>・<code>ndl-dl</code>・<code>ndl-dl-online</code> の記事レベル書誌が対象。</li>
+      <li><strong>*12 jpro 系</strong>: 近日中に刊行される図書のメタデータ（近刊情報）を含む。<code>jpro-book</code>・<code>jpro-online</code>・<code>jpro-audiobook</code> は <code>jpro</code> の部分集合。</li>
+      <li><strong>*13 jpro-online-repository / jpro-online-tts</strong>: <code>jpro-online</code> の部分集合。前者はリポジトリ収録資料、後者は音声読み上げ機能（TTS）を持つものが対象。</li>
+    </ul>
+
+    <h3 class="section-header" id="appendix1-discontinued">表2: 連携停止済みデータプロバイダとメタデータ削除日</h3>
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div>2024年1月12日までに連携を停止したデータプロバイダについては、OAI-PMH から削除レコードの出力を行っていません。</div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>データプロバイダ名称</th>
+            <th>データプロバイダ ID</th>
+            <th>ハーベスト用 API</th>
+            <th>削除日</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>近代デジタルライブラリー</td><td><code>kindai</code></td><td class="center">○</td><td>2012年9月13日</td></tr>
+          <tr><td>HERMES-IR (Special Collections)</td><td><code>hermes</code></td><td class="center">○</td><td>2013年9月26日</td></tr>
+          <tr><td>秋田県立図書館（デジタルライブラリー）</td><td><code>akita-dl</code></td><td class="center">○</td><td>2014年3月20日</td></tr>
+          <tr><td>秋田県立図書館（記事・索引）</td><td><code>akita-kiji</code></td><td class="center">○</td><td>2014年3月20日</td></tr>
+          <tr><td>Dnavi</td><td><code>dnavi</code></td><td class="center">○</td><td>2014年3月31日</td></tr>
+          <tr><td>九州大学デジタル・アーカイブ</td><td><code>kyushu</code></td><td class="center">○</td><td>2014年7月17日</td></tr>
+          <tr><td>NDL-HP 掲載刊行物</td><td><code>iss-ndl-hp-docs</code></td><td class="center">○</td><td>2014年12月11日</td></tr>
+          <tr><td>慶應義塾図書館デジタルギャラリー</td><td><code>keio-g</code></td><td class="center">○</td><td>2019年6月20日</td></tr>
+          <tr><td>慶應義塾写真データベース</td><td><code>keio-p</code></td><td class="center">○</td><td>2019年6月20日</td></tr>
+          <tr><td>新聞総合目録</td><td><code>iss-shinbun</code></td><td class="center">○</td><td>2021年6月24日</td></tr>
+          <tr><td>文化遺産オンライン</td><td><code>bunkaisan</code></td><td class="center">○</td><td>2022年10月27日</td></tr>
+          <tr><td>ColBase: 国立博物館所蔵品統合検索システム</td><td><code>colbase</code></td><td class="center">○</td><td>2022年10月27日</td></tr>
+          <tr><td>石川県立図書館 貴重資料ギャラリー</td><td><code>ishikawa</code></td><td class="center">○</td><td>2022年12月8日</td></tr>
+          <tr><td>児童書総合目録</td><td><code>iss-jido-somoku</code></td><td class="center">×</td><td>2023年3月9日</td></tr>
+          <tr><td>独立行政法人国立美術館 所蔵作品総合目録検索システム（画像あり）</td><td><code>artm-1</code></td><td class="center">×</td><td>2023年3月9日</td></tr>
+          <tr><td>独立行政法人国立美術館 所蔵作品総合目録検索システム（画像なし）</td><td><code>artm-2</code></td><td class="center">×</td><td>2023年3月9日</td></tr>
+          <tr><td>名古屋の絵葉書集（名古屋市鶴舞中央図書館）</td><td><code>nagoyashi</code></td><td class="center">○</td><td>2023年3月9日</td></tr>
+          <tr><td>CiNii Articles</td><td><code>cinii</code></td><td class="center">×</td><td>2024年1月5日</td></tr>
+          <tr><td>国立国会図書館電子展示会</td><td><code>webcont</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>福岡県立図書館 デジタルライブラリ</td><td><code>hukuoka</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>鳥取県立図書館所蔵絵図</td><td><code>tottori</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>リサーチ・ナビ</td><td><code>rnavi</code></td><td class="center">×</td><td>2024年1月5日</td></tr>
+          <tr><td>日本法令索引（明治前期編）</td><td><code>hourei-meiji</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>出版情報登録センター（JPRO）</td><td><code>kinkan</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>CiNii Books</td><td><code>ciniib</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>三重県立図書館 和漢籍資料デジタル閲覧室</td><td><code>mie-p</code></td><td class="center">○</td><td>2024年1月5日</td></tr>
+          <tr><td>岡山市立中央図書館 郷土資料画像集</td><td><code>okayamashi</code></td><td class="center">○</td><td>2024年1月12日</td></tr>
+          <tr><td>秋田県立図書館デジタルアーカイブ</td><td><code>akita-digital-archive</code></td><td class="center">○</td><td>2025年4月16日</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-header" id="appendix1-thumbnail">表3: 書影 API のデータプロバイダ一覧</h3>
+    <p>書影 API で提供される書影は以下のデータプロバイダから提供されたものです。なお、<strong>書影 API のリクエスト時にデータプロバイダ ID は指定しません</strong>。</p>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>データプロバイダ名称</th>
+            <th>データプロバイダ ID</th>
+            <th>リポジトリ番号</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>出版情報登録センター（JPRO）</td><td><code>jpro</code></td><td>R100000137</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout note">
+      <span class="callout-icon">📌</span>
+      <div>出版取消が行われた場合等で、書影の提供を停止する場合があります。また、提供される書影は最終刊行版でない場合があります。</div>
+    </div>
+  </section>
+
+  <!-- ====== 附録2 ====== -->
+  <section class="doc-section" id="appendix2">
+    <div class="section-eyebrow">附録 2</div>
+    <h2 class="section-header">データグループ ID・mediaType 一覧</h2>
+    <p>最終更新: 2024.4.1</p>
+
+    <h3>表1: データグループ ID 一覧</h3>
+    <p>データグループ ID を指定することで、複数のデータプロバイダを横断して検索できます。</p>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>データグループ名</th>
+            <th>データグループ ID</th>
+            <th>説明</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>オープンデータ</td>
+            <td><code>open</code></td>
+            <td>NDLサーチ上で PDM または CC0 で提供されているメタデータを対象としたデータグループ</td>
+          </tr>
+          <tr>
+            <td>タイトル書誌群</td>
+            <td><code>title</code></td>
+            <td>逐次刊行物のタイトルやシリーズものの図書など、巻号をまとめる書誌を対象としたデータグループ</td>
+          </tr>
+          <tr>
+            <td>図書/巻号書誌群</td>
+            <td><code>book</code></td>
+            <td>雑誌の各巻、図書や地図など資料を利用する場合の基本単位となる書誌を対象としたデータグループ</td>
+          </tr>
+          <tr>
+            <td>記事書誌群</td>
+            <td><code>article</code></td>
+            <td>雑誌に掲載されている記事や論文の書誌を対象としたデータグループ</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>表2: 資料形態（mediaType）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>mediaType 名</th><th>mediaType 値</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>紙</td><td><code>booklet</code></td><td>資料形態が「紙」であるメタデータ</td></tr>
+          <tr><td>マイクロ</td><td><code>micro</code></td><td>資料形態が「マイクロ」であるメタデータ</td></tr>
+          <tr><td>記録メディア</td><td><code>media</code></td><td>資料形態が「記録メディア」であるメタデータ</td></tr>
+          <tr><td>デジタル</td><td><code>digital</code></td><td>資料形態が「デジタル」であるメタデータ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>表3: 資料種別（mediaType）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>mediaType 名</th><th>mediaType 値</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>図書</td><td><code>books</code></td><td>資料種別が「図書」であるメタデータ</td></tr>
+          <tr><td>雑誌</td><td><code>periodicals</code></td><td>資料種別が「雑誌」であるメタデータ</td></tr>
+          <tr><td>記事</td><td><code>articles</code></td><td>資料種別が「記事」であるメタデータ</td></tr>
+          <tr><td>新聞</td><td><code>newspapers</code></td><td>資料種別が「新聞」であるメタデータ</td></tr>
+          <tr><td>和古書・漢籍</td><td><code>oldmaterials</code></td><td>資料種別が「和古書・漢籍」であるメタデータ</td></tr>
+          <tr><td>地図</td><td><code>maps</code></td><td>資料種別が「地図」であるメタデータ</td></tr>
+          <tr><td>電子資料</td><td><code>electronic</code></td><td>資料種別が「電子資料」であるメタデータ</td></tr>
+          <tr><td>映像資料</td><td><code>video</code></td><td>資料種別が「映像資料」であるメタデータ</td></tr>
+          <tr><td>録音資料</td><td><code>audio</code></td><td>資料種別が「録音資料」であるメタデータ</td></tr>
+          <tr><td>電子資料・電子雑誌</td><td><code>online</code></td><td>資料種別が「電子書籍・電子雑誌」であるメタデータ</td></tr>
+          <tr><td>博士論文</td><td><code>doctoral</code></td><td>資料種別が「博士論文」であるメタデータ</td></tr>
+          <tr><td>規格・テクニカルリポート類</td><td><code>reports</code></td><td>資料種別が「規格・テクニカルリポート類」であるメタデータ</td></tr>
+          <tr><td>web サイト</td><td><code>web</code></td><td>資料種別が「web サイト」であるメタデータ</td></tr>
+          <tr><td>楽譜</td><td><code>scores</code></td><td>資料種別が「楽譜」であるメタデータ</td></tr>
+          <tr><td>文書・図像類</td><td><code>manuscripts</code></td><td>資料種別が「文書・図像類」であるメタデータ</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>表4: コレクション（mediaType）</h3>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>mediaType 名</th><th>mediaType 値</th><th>説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>児童書</td><td><code>children</code></td><td>コレクションが「児童書」であるメタデータ</td></tr>
+          <tr><td>リポジトリ収録資料</td><td><code>repository</code></td><td>コレクションが「リポジトリ収録資料」であるメタデータ</td></tr>
+          <tr><td>障害者（全体）</td><td><code>mina</code></td><td>コレクションが「障害者向け資料」であるメタデータ</td></tr>
+          <tr><td>障害者 - DAISY</td><td><code>mina-daisy</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「DAISY」であるメタデータ</td></tr>
+          <tr><td>録音資料</td><td><code>mina-audio</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「録音資料」であるメタデータ</td></tr>
+          <tr><td>点字資料</td><td><code>mina-braille</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「点字資料」であるメタデータ</td></tr>
+          <tr><td>テキストデータ</td><td><code>mina-text</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「テキストデータ」であるメタデータ</td></tr>
+          <tr><td>映像資料</td><td><code>mina-video</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「映像資料」であるメタデータ</td></tr>
+          <tr><td>冊子体資料</td><td><code>mina-booklet</code></td><td>コレクションが「障害者向け資料」であり、資料形態が「冊子体資料」であるメタデータ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ====== 附録3 ====== -->
+  <section class="doc-section" id="appendix3">
+    <div class="section-eyebrow">附録 3</div>
+    <h2 class="section-header">コレクションコード・Access Rights 一覧</h2>
+    <p>最終更新: 2025.9.16</p>
+    <p>
+      国立国会図書館デジタルコレクションのメタデータに付与されるコレクションコードおよび Access Rights の一覧です。
+      OAI-PMH の <code>set</code> パラメータや SRU の <code>dpid</code> パラメータで指定できます。
+    </p>
+
+    <div class="quick-ref">
+      <div class="quick-ref-item">
+        <div class="qr-label">ハーベスト用 API（OAI-PMH）</div>
+        <div class="qr-value">verb=ListRecords&amp;metadataPrefix=dcndl&amp;set=[コレクションコード]&amp;from=yyyy-mm-dd</div>
+      </div>
+      <div class="quick-ref-item">
+        <div class="qr-label">検索用 API（SRU）</div>
+        <div class="qr-value">operation=searchRetrieve&amp;query=dpid=[コレクションコード]</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>コレクションの確認方法: 国立国会図書館デジタルコレクションに遷移し、資料の詳細画面の「コレクション情報」欄を確認してください。</div>
+    </div>
+
+    <h3>表1: コレクションコード一覧</h3>
+
+    <h4>デジタル化資料（A00000〜）</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>コレクションコード</th><th>コレクション名</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>A00000</code></td><td>デジタル化資料（全体）</td></tr>
+          <tr><td><code>A00001</code></td><td>&nbsp;&nbsp;図書</td></tr>
+          <tr><td><code>A00026</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館</td></tr>
+          <tr><td><code>A00027</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館調査及び立法考査局</td></tr>
+          <tr><td><code>A00002</code></td><td>&nbsp;&nbsp;雑誌</td></tr>
+          <tr><td><code>A00028</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館</td></tr>
+          <tr><td><code>A00029</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館調査及び立法考査局</td></tr>
+          <tr><td><code>A00003</code></td><td>&nbsp;&nbsp;古典籍資料（貴重書等）</td></tr>
+          <tr><td><code>A00004</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;錦絵</td></tr>
+          <tr><td><code>A00005</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;絵図</td></tr>
+          <tr><td><code>A00006</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;重要文化財</td></tr>
+          <tr><td><code>A00007</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;洋古書</td></tr>
+          <tr><td><code>A00008</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;その他</td></tr>
+          <tr><td><code>A00188</code></td><td>&nbsp;&nbsp;帝国議会資料</td></tr>
+          <tr><td><code>A00197</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;議案</td></tr>
+          <tr><td><code>A00200</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;法律案</td></tr>
+          <tr><td><code>A00201</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;予算</td></tr>
+          <tr><td><code>A00202</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;決算</td></tr>
+          <tr><td><code>A00205</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;その他議案</td></tr>
+          <tr><td><code>A00203</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;質問</td></tr>
+          <tr><td><code>A00204</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;請願</td></tr>
+          <tr><td><code>A00194</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;便覧</td></tr>
+          <tr><td><code>A00195</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;先例集</td></tr>
+          <tr><td><code>A00196</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;広報・報告</td></tr>
+          <tr><td><code>A00198</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;会議録</td></tr>
+          <tr><td><code>A00199</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;その他</td></tr>
+          <tr><td><code>A00014</code></td><td>&nbsp;&nbsp;博士論文</td></tr>
+          <tr><td><code>A00022</code></td><td>&nbsp;&nbsp;新聞</td></tr>
+          <tr><td><code>A00015</code></td><td>&nbsp;&nbsp;官報</td></tr>
+          <tr><td><code>A00017</code></td><td>&nbsp;&nbsp;憲政資料（文書名・資料種類の階層あり。主要文書のみ抜粋）</td></tr>
+          <tr><td><code>A00016</code></td><td>&nbsp;&nbsp;日本占領関係資料（GHQ/SCAP文書・極東軍文書・USSBS等の階層あり）</td></tr>
+          <tr><td><code>A00019</code></td><td>&nbsp;&nbsp;プランゲ文庫（一般図書・児童書・雑誌・検閲新聞ゲラ）</td></tr>
+          <tr><td><code>A00121</code></td><td>&nbsp;&nbsp;録音・映像関係資料</td></tr>
+          <tr><td><code>A00123</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;脚本（テレビ・ラジオ・資料）</td></tr>
+          <tr><td><code>A00124</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;手稿譜</td></tr>
+          <tr><td><code>A00130</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;録音資料</td></tr>
+          <tr><td><code>A00131</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;映像資料</td></tr>
+          <tr><td><code>A00024</code></td><td>&nbsp;&nbsp;歴史的音源</td></tr>
+          <tr><td><code>A00152</code></td><td>&nbsp;&nbsp;地図</td></tr>
+          <tr><td><code>A00150</code></td><td>&nbsp;&nbsp;特殊デジタルコレクション</td></tr>
+          <tr><td><code>A00151</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;帝国図書館文書</td></tr>
+          <tr><td><code>A00167</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;在伯日本移民歴史調査記録</td></tr>
+          <tr><td><code>A00170</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;八田コレクション</td></tr>
+          <tr><td><code>A00171</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;布川文庫（図書・雑誌）</td></tr>
+          <tr><td><code>A00192</code></td><td>&nbsp;&nbsp;英国政党パンフレット</td></tr>
+          <tr><td><code>A00122</code></td><td>&nbsp;&nbsp;他機関デジタル化資料</td></tr>
+          <tr><td><code>A00125</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;石巻日日新聞</td></tr>
+          <tr><td><code>A00126</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;科学映像</td></tr>
+          <tr><td><code>A00142</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;東京大学附属図書館デジタル化資料</td></tr>
+          <tr><td><code>A00143</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;愛・地球博（図書・動画）</td></tr>
+          <tr><td><code>A00148</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;内務省検閲発禁図書</td></tr>
+          <tr><td><code>A00169</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;福島民友新聞社</td></tr>
+          <tr><td><code>A00183</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;五所川原市立図書館</td></tr>
+          <tr><td><code>A00184</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;府中市立図書館</td></tr>
+          <tr><td><code>A00185</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;岡山県立図書館</td></tr>
+          <tr><td><code>A00186</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;気象庁図書館</td></tr>
+          <tr><td><code>A00191</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;上田市立上田図書館</td></tr>
+          <tr><td><code>A00193</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;大阪府立中央図書館国際児童文学館</td></tr>
+          <tr><td><code>A00207</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;岡山大学附属図書館</td></tr>
+          <tr><td><code>A00208</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;北海道大学附属図書館</td></tr>
+          <tr><td><code>A00209</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;青森県りんご協会</td></tr>
+          <tr><td><code>A00210</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;国土交通省図書館</td></tr>
+          <tr><td><code>A00114</code></td><td>&nbsp;&nbsp;国立国会図書館東日本大震災アーカイブ</td></tr>
+          <tr><td><code>A00084</code></td><td>&nbsp;&nbsp;点字データ</td></tr>
+          <tr><td><code>A00030</code></td><td>&nbsp;&nbsp;視覚障害者等用資料</td></tr>
+          <tr><td><code>A00023</code></td><td>&nbsp;&nbsp;科学映像</td></tr>
+          <tr><td><code>A00162</code></td><td>&nbsp;&nbsp;パッケージ系電子出版物（図書・雑誌・録音資料・映像資料）</td></tr>
+          <tr><td><code>A00025</code></td><td>&nbsp;&nbsp;未分類（デジタル化資料）</td></tr>
+          <tr><td><code>A00173</code></td><td>&nbsp;&nbsp;日系移民関係資料（図書・新聞・雑誌・文書類）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>電子書籍・電子雑誌（B00000〜）</h4>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>コレクションコード</th><th>コレクション名</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>B00000</code></td><td>電子書籍・電子雑誌（全体）</td></tr>
+          <tr><td><code>B00001</code></td><td>&nbsp;&nbsp;国の機関</td></tr>
+          <tr><td><code>B00002</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;国会</td></tr>
+          <tr><td><code>B00003</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;衆議院</td></tr>
+          <tr><td><code>B00004</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;参議院</td></tr>
+          <tr><td><code>B00005</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館</td></tr>
+          <tr><td><code>B00142</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国立国会図書館調査及び立法考査局</td></tr>
+          <tr><td><code>B00007</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;裁判官弾劾裁判所</td></tr>
+          <tr><td><code>B00008</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;裁判官訴追委員会</td></tr>
+          <tr><td><code>B00009</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;中央省庁</td></tr>
+          <tr><td><code>B00011</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;内閣官房</td></tr>
+          <tr><td><code>B00012</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;人事院</td></tr>
+          <tr><td><code>B00013</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;内閣府（宮内庁・警察庁・金融庁・公正取引委員会・消費者庁等）</td></tr>
+          <tr><td><code>B00014</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;総務省（消防庁・公害等調整委員会）</td></tr>
+          <tr><td><code>B00015</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;法務省（検察庁・公安調査庁・公安審査委員会・出入国在留管理庁）</td></tr>
+          <tr><td><code>B00016</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;外務省</td></tr>
+          <tr><td><code>B00017</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;財務省（国税庁）</td></tr>
+          <tr><td><code>B00018</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;文部科学省（文化庁・スポーツ庁）</td></tr>
+          <tr><td><code>B00019</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;厚生労働省（中央労働委員会）</td></tr>
+          <tr><td><code>B00020</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;農林水産省（林野庁・水産庁）</td></tr>
+          <tr><td><code>B00021</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;経済産業省（資源エネルギー庁・特許庁・中小企業庁）</td></tr>
+          <tr><td><code>B00022</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国土交通省（気象庁・海上保安庁・観光庁・運輸安全委員会・国土地理院）</td></tr>
+          <tr><td><code>B00023</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;環境省（原子力規制委員会）</td></tr>
+          <tr><td><code>B00024</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;防衛省（防衛装備庁）</td></tr>
+          <tr><td><code>B00010</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;会計検査院</td></tr>
+          <tr><td><code>B00178</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;デジタル庁</td></tr>
+          <tr><td><code>B00025</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;裁判所</td></tr>
+          <tr><td><code>B00027</code></td><td>&nbsp;&nbsp;地方公共団体</td></tr>
+          <tr><td><code>B00028</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;都道府県（北海道〜沖縄県）</td></tr>
+          <tr><td><code>B00039</code>〜<code>B00093</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;各都道府県（北海道・青森県〜沖縄県）</td></tr>
+          <tr><td><code>B00040</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;市町村（各都道府県別）</td></tr>
+          <tr><td><code>B00174</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;特別地方公共団体（特別区・一部事務組合・広域連合）</td></tr>
+          <tr><td><code>B00030</code></td><td>&nbsp;&nbsp;学術機関</td></tr>
+          <tr><td><code>B00031</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;国立大学</td></tr>
+          <tr><td><code>B00032</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;公立大学</td></tr>
+          <tr><td><code>B00041</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;私立大学</td></tr>
+          <tr><td><code>B00042</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;大学共同利用機関法人</td></tr>
+          <tr><td><code>B00043</code></td><td>&nbsp;&nbsp;&nbsp;&nbsp;学協会</td></tr>
+          <tr><td><code>B00033</code></td><td>&nbsp;&nbsp;独立行政法人</td></tr>
+          <tr><td><code>B00035</code></td><td>&nbsp;&nbsp;その他</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="section-header" id="appendix3-ar">表2: Access Rights 一覧</h3>
+    <p>
+      Access Rights は国立国会図書館デジタルコレクションのコンテンツの公開範囲を表す値です。
+      OAI-PMH の <code>set</code> パラメータや SRU の <code>dpid</code> パラメータで指定できます。
+    </p>
+
+    <div class="quick-ref">
+      <div class="quick-ref-item">
+        <div class="qr-label">ハーベスト用 API（OAI-PMH）</div>
+        <div class="qr-value">verb=ListRecords&amp;metadataPrefix=dcndl&amp;set=[Access Rights]&amp;from=yyyy-mm-dd</div>
+      </div>
+      <div class="quick-ref-item">
+        <div class="qr-label">検索用 API（SRU）</div>
+        <div class="qr-value">operation=searchRetrieve&amp;query=dpid=[Access Rights]</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Access Rights 値</th><th>公開範囲</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>ARinternet</code></td><td>インターネット公開</td></tr>
+          <tr><td><code>ARkannai</code></td><td>国立国会図書館内公開</td></tr>
+          <tr><td><code>ARsoshin</code></td><td>国立国会図書館 / 図書館送信参加館・個人送信限定</td></tr>
+          <tr><td><code>ARrekion</code></td><td>国立国会図書館 / 歴史的音源配信参加館内公開</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div>Access Rights は <code>ndl-dl</code>（国立国会図書館デジタルコレクション）および <code>ndl-dl-online</code>（電子書籍・電子雑誌）にのみ付与されます。</div>
+    </div>
+  </section>
+
+  <!-- ====== DC-NDL ====== -->
+  <section class="doc-section" id="dcndl">
+    <h2 class="section-header">DC-NDL スキーマ</h2>
+
+    <p>
+      <strong>DC-NDL（ダブリンコアメタデータ記述）</strong> は、国立国会図書館がダブリンコアを基盤に独自拡張を加えたメタデータ記述形式です。SRU・OpenSearch・OAI-PMH の返戻データで利用されます。
+    </p>
+
+    <div class="quick-ref">
+      <div class="quick-ref-item">
+        <div class="qr-label">スキーマ識別子</div>
+        <div class="qr-value">dcndl</div>
+      </div>
+      <div class="quick-ref-item">
+        <div class="qr-label">現行バージョン</div>
+        <div class="qr-value">ver.2.2（2025年4月24日）</div>
+      </div>
+      <div class="quick-ref-item">
+        <div class="qr-label">ドラフト版</div>
+        <div class="qr-value">dcndl_v3（ver.3.0、2025年4月公開予定）</div>
+      </div>
+      <div class="quick-ref-item">
+        <div class="qr-label">フォーマット</div>
+        <div class="qr-value">RDF/XML</div>
+      </div>
+    </div>
+
+    <h3>メタデータ階層構造</h3>
+    <ul>
+      <li><strong>管理情報層</strong>: 目録規則・ステータス情報</li>
+      <li><strong>書誌情報層</strong>: タイトル・作成者・出版情報など</li>
+      <li><strong>個体情報層</strong>: 所蔵機関・利用条件</li>
+    </ul>
+
+    <p>詳細は <a href="https://ndlsearch.ndl.go.jp/renkei/dcndl" target="_blank">DC-NDL（RDF）フォーマット仕様</a> を参照してください。</p>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div><code>dcndl_v3</code> は正式版ではなく、ドラフト版として提供されています。本番環境での利用には注意してください。</div>
+    </div>
+  </section>
+
+  <!-- ====== CHANGELOG ====== -->
+  <section class="doc-section" id="changelog">
+    <h2 class="section-header">改版履歴</h2>
+
+    <div class="changelog-item">
+      <div class="changelog-version">第 1.3 版</div>
+      <div>
+        <div class="changelog-date">2025.3.26</div>
+        <div class="changelog-changes">
+          <ul>
+            <li>2. 共通事項: <code>dcndl_v3</code> に関する説明を記載</li>
+            <li>3. SRU: 表3-1・返戻形式に <code>dcndl_v3</code> に関する説明を記載</li>
+            <li>6. OAI-PMH: 返戻形式に <code>dcndl_v3</code> に関する説明を記載</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-version">第 1.2 版</div>
+      <div>
+        <div class="changelog-date">2024.7.12</div>
+        <div class="changelog-changes">
+          <ul>
+            <li>3. SRU: <code>dpid</code>・<code>sortBy</code> の説明を補足。前方一致・完全一致検索演算子の記載を削除</li>
+            <li>4. OpenSearch: <code>ndc</code>・<code>dpid</code> の説明を補足</li>
+            <li>5. OpenURL: <code>dpid</code> の説明を補足</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-version">第 1.1 版</div>
+      <div>
+        <div class="changelog-date">2024.2.9</div>
+        <div class="changelog-changes">
+          <ul>
+            <li>2. 共通事項: 内部 JSON のリクエスト形式を追記</li>
+            <li>3. SRU: <code>itemno</code> の内容を修正。複数値指定時の論理条件を追記。エラーメッセージ一覧を追加</li>
+            <li>4. OpenSearch: 複数値指定は半角スペース区切り・<code>mediatype</code> 複数指定は OR 検索の旨を追記</li>
+            <li>6. OAI-PMH: datestamp を含むタイムゾーンが JST であることを追記（2023.12 まで UTC）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="changelog-item">
+      <div class="changelog-version">第 1.0 版</div>
+      <div>
+        <div class="changelog-date">2024.1.5</div>
+        <div class="changelog-changes">初版作成</div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /content -->
+</main>
+
+<footer class="doc-footer">
+  <div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+    <span style="color:#64748b;font-size:11px;font-weight:600;letter-spacing:0.05em;text-transform:uppercase;">原典 PDF</span>
+    <a href="ndlsearch_api_20250326.pdf" target="_blank">仕様書本体（第 1.3 版・2025.3.26）</a>
+    <a href="附録1_データプロバイダ一覧と外部提供インタフェース対応表.pdf" target="_blank">附録1: データプロバイダ一覧（2025.11.5）</a>
+    <a href="附録2_データグループID・mediaType一覧.pdf" target="_blank">附録2: データグループ・mediaType（2024.4.1）</a>
+    <a href="附録3_コレクションコード・Access Rights一覧 .pdf" target="_blank">附録3: コレクションコード・Access Rights（2025.9.16）</a>
+  </div>
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center;">
+    <span>
+      国立国会図書館サーチ 外部提供インタフェース仕様書（第 1.3 版）&nbsp;—&nbsp;
+      <a href="https://ndlsearch.ndl.go.jp/renkei/dcndl" target="_blank">DC-NDL フォーマット仕様</a>
+      &nbsp;·&nbsp;
+      <a href="http://www.loc.gov/standards/sru/" target="_blank">SRU 基本仕様</a>
+      &nbsp;·&nbsp;
+      <a href="http://www.openarchives.org/OAI/openarchivesprotocol.html" target="_blank">OAI-PMH 基本仕様</a>
+    </span>
+    <span style="color:#94a3b8;font-size:11px;">✦ Generated by Claude Sonnet 4.6 (claude-sonnet-4-6) &nbsp;·&nbsp; Anthropic</span>
+  </div>
+</footer>
+
+<script>
+  // Sidebar active state based on scroll
+  const navItems = document.querySelectorAll('.nav-item[href^="#"]');
+  const sections = [];
+  navItems.forEach(item => {
+    const id = item.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, item });
+  });
+
+  function updateActive() {
+    const scrollY = window.scrollY + 80;
+    let current = sections[0];
+    for (const s of sections) {
+      if (s.el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+        current = s;
+      }
+    }
+    navItems.forEach(i => i.classList.remove('active'));
+    if (current) current.item.classList.add('active');
+  }
+
+  window.addEventListener('scroll', updateActive, { passive: true });
+  updateActive();
+</script>
+
+</body>
+</html>
