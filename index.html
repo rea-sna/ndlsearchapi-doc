@@ -799,7 +799,7 @@
 
     <h3>データプロバイダ・データグループ</h3>
     <p>
-      検索対象データベース（データプロバイダ）はデータプロバイダ ID で指定します。データグループを指定することで、複数のデータプロバイダを横断して検索することも可能です。最新の一覧は附録１・附録２を参照してください。
+      検索対象データベース（データプロバイダ）はデータプロバイダ ID で指定します。データグループを指定することで、複数のデータプロバイダを横断して検索することも可能です。最新の一覧は<a href="#appendix1">附録１</a>・<a href="#appendix2">附録２</a>を参照してください。
     </p>
     <div class="callout note">
       <span class="callout-icon">📌</span>
@@ -808,7 +808,7 @@
 
     <h3>mediaType</h3>
     <p>
-      SRU・OpenSearch・OpenURL では <code>mediatype</code> パラメータによって資料の種別・形態を絞り込めます。最新の mediaType 一覧は附録２（「データグループ ID・mediaType 一覧」）を参照してください。OAI-PMH・書影 API では指定できません。
+      SRU・OpenSearch・OpenURL では <code>mediatype</code> パラメータによって資料の種別・形態を絞り込めます。最新の mediaType 一覧は<a href="#appendix2">附録２</a>（「データグループ ID・mediaType 一覧」）を参照してください。OAI-PMH・書影 API では指定できません。
     </p>
 
     <h3>文字コード</h3>
@@ -1100,7 +1100,7 @@
           <tr>
             <td>18</td>
             <td><code>mediatype</code></td>
-            <td>資料の種別・形態（附録２参照）</td>
+            <td>資料の種別・形態（<a href="#appendix2">附録２参照</a>）</td>
             <td>完全一致</td>
             <td><code>=</code> のみ</td>
             <td>○（OR）</td>
@@ -1234,7 +1234,7 @@
           <tr><td>11</td><td><code>cnt</code></td><td>出力レコード上限値（最大 500 件、省略時 200）</td><td>—</td><td>×</td></tr>
           <tr><td>12</td><td><code>idx</code></td><td>レコード取得開始位置（省略時は 1）</td><td>—</td><td>×</td></tr>
           <tr><td>13</td><td><code>isbn</code></td><td>ISBN（10 桁・13 桁入力時は両方に変換して完全一致。それ以外は前方一致）</td><td>完全一致 or 前方一致</td><td>×</td></tr>
-          <tr><td>14</td><td><code>mediatype</code></td><td>資料種別（附録２参照）</td><td>完全一致</td><td>○（OR）</td></tr>
+          <tr><td>14</td><td><code>mediatype</code></td><td>資料種別（<a href="#appendix2">附録２参照</a>）</td><td>完全一致</td><td>○（OR）</td></tr>
         </tbody>
       </table>
     </div>
